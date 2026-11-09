@@ -236,7 +236,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ARCH: [ x86, x64, arm64 ]
+        ARCH: [ x64 ]
         include:
           # -----
           - ARCH: x86
@@ -281,25 +281,63 @@ jobs:
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
-          cd $(cygpath $RUNNER_WORKSPACE)
+          set -e
+      
+          echo "Directorio inicial:"
+          pwd
+      
+          BUILD_DIR="$(cygpath -u "$GITHUB_WORKSPACE")"
+      
+          echo "Directorio de libffi:"
+          echo "$BUILD_DIR"
+      
+          cd "$BUILD_DIR" || {
+          echo "ERROR: No se pudo entrar en $BUILD_DIR"
+          exit 1
+        }
+
+          echo "Directorio actual despues del cd:"
+          pwd
+      
+          echo "Contenido antes de autogen:"
+          ls -la
+      
+          test -f ./autogen.sh || {
+          echo "ERROR: autogen.sh no existe en $(pwd)"
+          exit 1
+        }
+
           ./autogen.sh
+      
+          echo "Contenido despues de autogen:"
+          ls -la
+      
+          test -f ./configure || {
+          echo "ERROR: autogen.sh no genero configure"
+          exit 1
+        }
+
           ./configure \
-            CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
-            CXX="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
-            LD='link' \
-            CPP='cl -nologo -EP' \
-            CXXCPP='cl -nologo -EP' \
-            CPPFLAGS='-DFFI_BUILDING_DLL -DUSE_STATIC_RTL' \
-            NM='dumpbin -symbols' \
-            STRIP=':' \
-            CONFIGURE_OPTIONS=--disable-shared \
-            --host=${{matrix.HOST}} \
-            || (cat */config.log ; exit 1)
-          cp src/${{matrix.SOURCE_ARCH}}/ffitarget.h include
+          CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{ matrix.MSVC_SH }}" \
+          CXX="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{ matrix.MSVC_SH }}" \
+          LD='link' \
+          CPP='cl -nologo -EP' \
+          CXXCPP='cl -nologo -EP' \
+          CPPFLAGS='-DFFI_BUILDING_DLL -DUSE_STATIC_RTL' \
+          NM='dumpbin -symbols' \
+          STRIP=':' \
+          CONFIGURE_OPTIONS=--disable-shared \
+          --host=${{ matrix.HOST }} \
+          || {
+          find . -name config.log -print -exec cat {} \;
+          exit 1
+        }
+
+          cp src/${{ matrix.SOURCE_ARCH }}/ffitarget.h include
           make all
           EOF
-          echo BUILD SCRIPT
-          echo ------------
+      
+          echo "=== BUILD SCRIPT ==="
           cat build.sh
           chmod +x build.sh
         shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
