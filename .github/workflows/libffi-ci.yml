@@ -47,13 +47,21 @@ jobs:
         run: |
           source /opt/rh/gcc-toolset-15/enable || true
           make
-      - name: Prepare artifact
+      - name: Package artifact
         run: |
-          mkdir artifacts
+          PKG=libffi-${{ inputs.version }}-linux-${{ matrix.ARCH }}
+
+          mkdir -p "$PKG/include"
+          mkdir -p "$PKG/lib"
+
+          cp include/*.h "$PKG/include/"
+          cp LICENSE "$PKG/"
+
           cp ${{ matrix.HOST }}/.libs/libffi_convenience.a \
-             artifacts/libffi.a
+             "$PKG/lib/libffi.a"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libffi-${{ inputs.version }}-linux-${{ matrix.ARCH }}
-          path: artifacts/libffi.a
+          name: ${{ matrix.ARCH }}-linux
+          path: libffi-${{ inputs.version }}-linux-${{ matrix.ARCH }}
