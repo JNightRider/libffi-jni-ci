@@ -216,7 +216,7 @@ jobs:
         run: ${{matrix.CC}} make all
       - name: Package artifact
         run: |
-          PKG=libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
+          PKG=libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
 
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
