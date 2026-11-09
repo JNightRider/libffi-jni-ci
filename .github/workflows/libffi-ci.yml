@@ -236,7 +236,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ARCH: [ x86, x64, arm64 ]
+        ARCH: [ x64 ]
         include:
           # -----
 #          - ARCH: x86
@@ -304,7 +304,9 @@ jobs:
         shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
       - name: Build
         #call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=${{matrix.MSVC_ARCH}}
-        run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr build.sh
+        #run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr build.sh
+        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+        run: bash "$(cygpath -u "$RUNNER_TEMP/build.sh")"
       - name: Package artifact
         run: |
           PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
