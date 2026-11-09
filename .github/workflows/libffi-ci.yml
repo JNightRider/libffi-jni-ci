@@ -35,7 +35,7 @@ jobs:
           dnf -y install epel-release wget
           dnf config-manager --set-enabled powertools
           dnf -y update
-          dnf -y install gcc-toolset-15-gcc awscli
+          dnf -y install gcc-toolset-15-gcc
       - name: Install libffi dependencies
         run: dnf -y install autoconf automake autoconf libtool texinfo
       - name: Configure build
