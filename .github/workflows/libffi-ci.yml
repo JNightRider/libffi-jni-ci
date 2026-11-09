@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  URL_LIBFFI: https://github.com/libffi/libffi/archive/refs/tags/v3.8.0.zip
+  FFI_VERSION: v3.8.0
   VERSION: 0.1.0
 
 jobs:
@@ -26,12 +26,10 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Install curl
-        run: dnf -y install curl
-      - name: Download repository
-        run: |
-          curl -L ${{ env.URL_LIBFFI }} | tar -xzvf
-          ls
+      - name: Install git
+        run: dnf -y install git
+      - name: Clone repository
+        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
       - name: Install build dependencies
         run: |
           dnf -y install epel-release
