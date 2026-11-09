@@ -69,8 +69,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ARCH: [ arm32, arm64, ppc64le, riscv64 ]
+        ARCH: [ x64, arm32, arm64, ppc64le, riscv64 ]
         include:
+          - ARCH: x64
+            RUNNER: ubuntu-22.04
+            TRIPLET: x86_64-linux-gnu
+            GCC: 12
+            HOST: x86_64-pc-linux-gnu
           - ARCH: arm32
             RUNNER: ubuntu-22.04
             CROSS_ARCH: armhf
@@ -103,9 +108,13 @@ jobs:
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get -yq update
           DEBIAN_FRONTEND=noninteractive sudo apt-get -yq install m4 make autoconf automake libtool libltdl-dev texinfo \
-            gcc-${{matrix.GCC}}-${{matrix.TRIPLET}} \
-            libc6-dev-${{matrix.CROSS_ARCH}}-cross \
+            gcc-${{ matrix.GCC }}-${{ matrix.TRIPLET }} \
             git
+
+          if [ "${{ matrix.ARCH }}" != "x64" ]; then
+            DEBIAN_FRONTEND=noninteractive sudo apt-get -yq install \
+              libc6-dev-${{ matrix.CROSS_ARCH }}-cross
+          fi
       - name: Clone repository
         run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
       - name: Configure build
