@@ -275,7 +275,7 @@ jobs:
         with:
           arch: ${{ matrix.MSVC_ARCH }}
       - name: Clone repository
-        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git libffi
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
