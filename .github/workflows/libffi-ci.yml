@@ -62,3 +62,70 @@ jobs:
         with:
           name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
           path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+
+  Linux-Cross:
+    name: Linux Cross
+    runs-on: ${{ matrix.RUNNER }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ARCH: [ arm32, arm64, ppc64le, riscv64 ]
+        include:
+          - ARCH: arm32
+            RUNNER: ubuntu-22.04
+            CROSS_ARCH: armhf
+            TRIPLET: arm-linux-gnueabihf
+            GCC: 12
+            HOST: arm-unknown-linux-gnueabihf
+          - ARCH: arm64
+            RUNNER: ubuntu-22.04
+            CROSS_ARCH: arm64
+            TRIPLET: aarch64-linux-gnu
+            GCC: 12
+            HOST: aarch64-unknown-linux-gnu
+          - ARCH: ppc64le
+            RUNNER: ubuntu-22.04
+            CROSS_ARCH: ppc64el
+            TRIPLET: powerpc64le-linux-gnu
+            GCC: 12
+            HOST: powerpc64le-unknown-linux-gnu
+          - ARCH: riscv64
+            RUNNER: ubuntu-24.04
+            CROSS_ARCH: riscv64
+            TRIPLET: riscv64-linux-gnu
+            GCC: 14
+            HOST: riscv64-unknown-linux-gnu
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - name: Install dependencies
+        run: |
+          DEBIAN_FRONTEND=noninteractive sudo apt-get -yq update
+          DEBIAN_FRONTEND=noninteractive sudo apt-get -yq install m4 make autoconf automake libtool libltdl-dev texinfo \
+            gcc-${{matrix.GCC}}-${{matrix.TRIPLET}} \
+            libc6-dev-${{matrix.CROSS_ARCH}}-cross
+      - name: Configure build
+        run: |
+          PATH=$HOME/i/bin:$PATH ./autogen.sh
+          ./configure --disable-shared --with-pic CC=${{matrix.TRIPLET}}-gcc-${{matrix.GCC}} --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
+      - name: Build
+        run: make
+      - name: Package artifact
+        run: |
+          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+
+          mkdir -p "$PKG/include"
+          mkdir -p "$PKG/lib"
+
+          cp LICENSE "$PKG/"
+          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
+          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
