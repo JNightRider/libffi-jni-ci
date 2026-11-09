@@ -26,10 +26,6 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Install Kotlin
-        run: |
-          dnf install -y default-jdk
-          curl -s "https://get.sdkman.io" | bash
       - name: Install git
         run: dnf -y install git
       - name: Clone repository
