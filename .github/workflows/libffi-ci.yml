@@ -169,7 +169,7 @@ jobs:
       - name: Package artifact
         run: |
           PKG=libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
-          LIB_DIR=${{ matrix. OUTPUT }}${{ matrix.VERSION  }}
+          LIB_DIR=${{ matrix.OUTPUT }}${{ matrix.VERSION  }}
 
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
