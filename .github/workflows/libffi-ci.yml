@@ -280,7 +280,7 @@ jobs:
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
-          cd $(cygpath $RUNNER_WORKSPACE)
+          cd $(cygpath $RUNNER_WORKSPACE)/libffi-jni-ci
           ./autogen.sh
           ./configure \
             CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
