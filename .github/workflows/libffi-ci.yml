@@ -130,53 +130,101 @@ jobs:
 #          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
 #          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
 
-  Freebsd-Cross:
-    name: FreeBSD Cross
-    runs-on: ubuntu-latest
+#  Freebsd-Cross:
+#    name: FreeBSD Cross
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        ARCH: [ x64 ]
+#        include:
+#          - ARCH: x64
+#            VM_ARCH: x86-64
+#            VERSION: '14.4'
+#            OUTPUT: x86_64-unknown-freebsd
+#    steps:
+#      - name: Start VM
+#        uses: cross-platform-actions/action@v1.3.0
+#        with:
+#          operating_system: freebsd
+#          architecture: ${{ matrix.VM_ARCH }}
+#          version: ${{ matrix.VERSION }}
+#          memory: 4G
+#      - name: Install dependencies
+#        shell: cpa.sh {0}
+#        run: sudo pkg install -y m4 gmake automake libtool texinfo git
+#      - name: Clone repository
+#        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+#      - name: Configure build
+#        shell: cpa.sh {0}
+#        run: |
+#          ./autogen.sh
+#          ./configure --disable-shared --with-pic
+#      - name: Print config failure
+#        run: cat */config.log
+#        if: failure()
+#      - name: Build
+#        shell: cpa.sh {0}
+#        run: make
+#      - name: Package artifact
+#        run: |
+#          PKG=libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
+#          LIB_DIR=${{ matrix.OUTPUT }}${{ matrix.VERSION  }}
+#
+#          mkdir -p "$PKG/include"
+#          mkdir -p "$PKG/lib"
+#
+#          cp LICENSE "$PKG/"
+#          cp $LIB_DIR/include/*.h "$PKG/include/"
+#          cp $LIB_DIR/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
+#          path: libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
+
+  MacOs:
+    name: macOS
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        ARCH: [ x64 ]
+        ARCH: [ x64, arm64 ]
         include:
           - ARCH: x64
-            VM_ARCH: x86-64
-            VERSION: '14.4'
-            OUTPUT: x86_64-unknown-freebsd
+            DARWIN: 15
+            CC: MACOSX_DEPLOYMENT_TARGET=10.11
+            CFLAGS: -target x64-apple-darwin -arch x86_64 -mmacosx-version-min=10.11
+            LDFLAGS: -target x64-apple-darwin -arch x86_64 -mmacosx-version-min=10.11
+            HOST: x86_64
+          - ARCH: arm64
+            DARWIN: 20
+            CC: MACOSX_DEPLOYMENT_TARGET=11.0
+            CFLAGS: -target aarch64-apple-darwin -arch arm64 -mmacosx-version-min=11.0
+            LDFLAGS: -target aarch64-apple-darwin -arch arm64 -mmacosx-version-min=11.0
+            HOST: aarch64
     steps:
-      - name: Start VM
-        uses: cross-platform-actions/action@v1.3.0
-        with:
-          operating_system: freebsd
-          architecture: ${{ matrix.VM_ARCH }}
-          version: ${{ matrix.VERSION }}
-          memory: 4G
       - name: Install dependencies
-        shell: cpa.sh {0}
-        run: sudo pkg install -y m4 gmake automake libtool texinfo git
+        run: brew install automake libtool texinfo git
       - name: Clone repository
         run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
       - name: Configure build
-        shell: cpa.sh {0}
         run: |
           ./autogen.sh
-          ./configure --disable-shared --with-pic
-      - name: Print config failure
-        run: cat */config.log
-        if: failure()
+          ${{matrix.CC}} ./configure --disable-shared CC=clang CFLAGS='${{matrix.CFLAGS}}' LDFLAGS='${{matrix.LDFLAGS}}' --target ${{matrix.ARCH}}-apple-darwin${{matrix.DARWIN}} --host=${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}} || (cat */config.log ; exit 1)
       - name: Build
-        shell: cpa.sh {0}
-        run: make
+        run: ${{matrix.CC}} make all
       - name: Package artifact
         run: |
           PKG=libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
-          LIB_DIR=${{ matrix.OUTPUT }}${{ matrix.VERSION  }}
 
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
+          ls
           cp LICENSE "$PKG/"
-          cp $LIB_DIR/include/*.h "$PKG/include/"
-          cp $LIB_DIR/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+          #cp $LIB_DIR/include/*.h "$PKG/include/"
+          #cp $LIB_DIR/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
