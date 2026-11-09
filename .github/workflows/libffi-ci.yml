@@ -26,6 +26,10 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Install Kotlin
+        run: |
+          dnf install -y default-jdk
+          curl -s "https://get.sdkman.io" | bash
       - name: Install git
         run: dnf -y install git
       - name: Clone repository
@@ -57,7 +61,6 @@ jobs:
           cp LICENSE "$PKG/"
           cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
           cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
