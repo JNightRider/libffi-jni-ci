@@ -183,49 +183,139 @@ jobs:
 #          name: libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
 #          path: libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
 
-  MacOs:
-    name: macOS
-    runs-on: macos-latest
+#  MacOs:
+#    name: macOS
+#    runs-on: macos-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        ARCH: [ x64, arm64 ]
+#        include:
+#          - ARCH: x64
+#            DARWIN: 15
+#            CC: MACOSX_DEPLOYMENT_TARGET=10.11
+#            CFLAGS: -target x64-apple-darwin -arch x86_64 -mmacosx-version-min=10.11
+#            LDFLAGS: -target x64-apple-darwin -arch x86_64 -mmacosx-version-min=10.11
+#            HOST: x86_64
+#          - ARCH: arm64
+#            DARWIN: 20
+#            CC: MACOSX_DEPLOYMENT_TARGET=11.0
+#            CFLAGS: -target aarch64-apple-darwin -arch arm64 -mmacosx-version-min=11.0
+#            LDFLAGS: -target aarch64-apple-darwin -arch arm64 -mmacosx-version-min=11.0
+#            HOST: aarch64
+#    steps:
+#      - name: Install dependencies
+#        run: brew install automake libtool texinfo git
+#      - name: Clone repository
+#        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+#      - name: Configure build
+#        run: |
+#          ./autogen.sh
+#          ${{matrix.CC}} ./configure --disable-shared CC=clang CFLAGS='${{matrix.CFLAGS}}' LDFLAGS='${{matrix.LDFLAGS}}' --target ${{matrix.ARCH}}-apple-darwin${{matrix.DARWIN}} --host=${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}} || (cat */config.log ; exit 1)
+#      - name: Build
+#        run: ${{matrix.CC}} make all
+#      - name: Package artifact
+#        run: |
+#          PKG=libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
+#
+#          mkdir -p "$PKG/include"
+#          mkdir -p "$PKG/lib"
+#
+#          cp LICENSE "$PKG/"
+#          cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}}/include/*.h "$PKG/include/"
+#          cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
+#          path: libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
+
+  windows:
+    name: Windows
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
-        ARCH: [ x64, arm64 ]
+        ARCH: [ x86, x64, arm64 ]
         include:
+          # -----
+          - ARCH: x86
+            SOURCE_ARCH: x86
+            #VCTOOLS: x86.x64
+            MSVC_ARCH: amd64_x86
+            #MSVC_ARCH: x86
+            MSVC_SH: -m32
+            HOST: i686-pc-cygwin
+          # -----
           - ARCH: x64
-            DARWIN: 15
-            CC: MACOSX_DEPLOYMENT_TARGET=10.11
-            CFLAGS: -target x64-apple-darwin -arch x86_64 -mmacosx-version-min=10.11
-            LDFLAGS: -target x64-apple-darwin -arch x86_64 -mmacosx-version-min=10.11
-            HOST: x86_64
+            SOURCE_ARCH: x86
+            #VCTOOLS: x86.x64
+            MSVC_ARCH: amd64
+            MSVC_SH: -m64
+            HOST: x86_64-pc-cygwin
+          # -----
           - ARCH: arm64
-            DARWIN: 20
-            CC: MACOSX_DEPLOYMENT_TARGET=11.0
-            CFLAGS: -target aarch64-apple-darwin -arch arm64 -mmacosx-version-min=11.0
-            LDFLAGS: -target aarch64-apple-darwin -arch arm64 -mmacosx-version-min=11.0
-            HOST: aarch64
+            SOURCE_ARCH: aarch64
+            #VCTOOLS: ARM64
+            MSVC_ARCH: amd64_arm64
+            #MSVC_ARCH: arm64
+            MSVC_SH: -marm64
+            HOST: aarch64-pc-cygwin
+    defaults:
+      run:
+        shell: cmd
     steps:
       - name: Install dependencies
-        run: brew install automake libtool texinfo git
+        uses: egor-tensin/setup-cygwin@v4
+        with:
+          #platform: x64
+          install-dir: C:\cygwin
+          packages: wget autoconf automake libtool
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.MSVC_ARCH }}
       - name: Clone repository
         run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
-      - name: Configure build
+      - name: Prepare build script
         run: |
+          cat > build.sh <<'EOF'
+          cd $(cygpath $RUNNER_WORKSPACE)/libffi
           ./autogen.sh
-          ${{matrix.CC}} ./configure --disable-shared CC=clang CFLAGS='${{matrix.CFLAGS}}' LDFLAGS='${{matrix.LDFLAGS}}' --target ${{matrix.ARCH}}-apple-darwin${{matrix.DARWIN}} --host=${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}} || (cat */config.log ; exit 1)
+          ./configure \
+            CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
+            CXX="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
+            LD='link' \
+            CPP='cl -nologo -EP' \
+            CXXCPP='cl -nologo -EP' \
+            CPPFLAGS='-DFFI_BUILDING_DLL -DUSE_STATIC_RTL' \
+            NM='dumpbin -symbols' \
+            STRIP=':' \
+            CONFIGURE_OPTIONS=--disable-shared \
+            --host=${{matrix.HOST}} \
+            || (cat */config.log ; exit 1)
+          cp src/${{matrix.SOURCE_ARCH}}/ffitarget.h include
+          make all
+          EOF
+          echo BUILD SCRIPT
+          echo ------------
+          cat build.sh
+          chmod +x build.sh
+        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
       - name: Build
-        run: ${{matrix.CC}} make all
+        #call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=${{matrix.MSVC_ARCH}}
+        run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr build.sh
       - name: Package artifact
         run: |
-          PKG=libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
+          PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
 
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
           cp LICENSE "$PKG/"
-          cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}}/include/*.h "$PKG/include/"
-          cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+          cp ${{matrix.HOST}}/include/*.h "$PKG/include/"
+          cp ${{matrix.HOST}}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
-          path: libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
+          name: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
