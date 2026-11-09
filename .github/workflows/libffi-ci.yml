@@ -9,6 +9,11 @@ on:
         description: 'version'
         required: true
         type: string
+
+env:
+  URL_LIBFFI: https://github.com/libffi/libffi/archive/refs/tags/v3.8.0.zip
+  VERSION: 0.1.0
+
 jobs:
   Linux:
     name: Linux
@@ -26,13 +31,15 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Install git
-        run: dnf -y install git
-      - name: Clone repository
-        run: git clone --depth 3 https://github.com/libffi/libffi.git .
+      - name: Install curl
+        run: dnf -y install curl
+      - name: Download repository
+        run: |
+          curl -L ${{ env.URL_LIBFFI }} | tar -xzvf
+          ls
       - name: Install build dependencies
         run: |
-          dnf -y install epel-release wget
+          dnf -y install epel-release
           dnf config-manager --set-enabled powertools
           dnf -y update
           dnf -y install gcc-toolset-15-gcc
@@ -49,7 +56,7 @@ jobs:
           make
       - name: Package artifact
         run: |
-          PKG=libffi-${{ inputs.version }}-linux-${{ matrix.ARCH }}
+          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
 
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
@@ -60,5 +67,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libffi-${{ inputs.version }}-linux-${{ matrix.ARCH }}
-          path: libffi-${{ inputs.version }}-linux-${{ matrix.ARCH }}
+          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
