@@ -303,6 +303,32 @@ jobs:
           cat build.sh
           chmod +x build.sh
         shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+      - name: Debug Cygwin workspace
+        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+        run: |
+          echo "=== Directorio actual ==="
+          pwd
+
+          echo "=== Contenido del directorio actual ==="
+          ls -la
+
+          echo "=== Variables de GitHub Actions ==="
+          echo "RUNNER_WORKSPACE=$RUNNER_WORKSPACE"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+
+          echo "=== Conversion a rutas Cygwin ==="
+          echo "RUNNER_WORKSPACE=$(cygpath "$RUNNER_WORKSPACE")"
+          echo "GITHUB_WORKSPACE=$(cygpath "$GITHUB_WORKSPACE")"
+
+          echo "=== Contenido de GITHUB_WORKSPACE ==="
+          ls -la "$(cygpath "$GITHUB_WORKSPACE")"
+
+          echo "=== Buscar archivos de libffi ==="
+          find "$(cygpath "$RUNNER_WORKSPACE")" \
+            -maxdepth 4 \
+            -type f \
+            \( -name "autogen.sh" -o -name "configure" -o -name "msvcc.sh" \) \
+            -print
       - name: Build
         #call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=${{matrix.MSVC_ARCH}}
         #run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr ls build.sh
