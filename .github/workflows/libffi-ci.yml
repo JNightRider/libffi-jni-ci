@@ -10,125 +10,125 @@ env:
   VERSION: 0.1.0
 
 jobs:
-  Linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    container:
-      image: almalinux:8
-    strategy:
-      fail-fast: false
-      matrix:
-        ARCH: [x64]
-        include:
-          - ARCH: x64
-            HOST: x86_64-pc-linux-gnu
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Install git
-        run: dnf -y install git
-      - name: Clone repository
-        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
-      - name: Install build dependencies
-        run: |
-          dnf -y install epel-release
-          dnf config-manager --set-enabled powertools
-          dnf -y update
-          dnf -y install gcc-toolset-15-gcc
-      - name: Install libffi dependencies
-        run: dnf -y install autoconf automake autoconf libtool texinfo
-      - name: Configure build
-        run: |
-          source /opt/rh/gcc-toolset-15/enable || true
-          ./autogen.sh
-          ./configure --disable-shared --with-pic --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
-      - name: Build
-        run: |
-          source /opt/rh/gcc-toolset-15/enable || true
-          make
-      - name: Package artifact
-        run: |
-          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
-
-          mkdir -p "$PKG/include"
-          mkdir -p "$PKG/lib"
-
-          cp LICENSE "$PKG/"
-          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
-          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
-          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
-
-  Linux-Cross:
-    name: Linux Cross
-    runs-on: ${{ matrix.RUNNER }}
-    strategy:
-      fail-fast: false
-      matrix:
-        ARCH: [ arm32, arm64, ppc64le, riscv64 ]
-        include:
-          - ARCH: arm32
-            RUNNER: ubuntu-22.04
-            CROSS_ARCH: armhf
-            TRIPLET: arm-linux-gnueabihf
-            GCC: 12
-            HOST: arm-unknown-linux-gnueabihf
-          - ARCH: arm64
-            RUNNER: ubuntu-22.04
-            CROSS_ARCH: arm64
-            TRIPLET: aarch64-linux-gnu
-            GCC: 12
-            HOST: aarch64-unknown-linux-gnu
-          - ARCH: ppc64le
-            RUNNER: ubuntu-22.04
-            CROSS_ARCH: ppc64el
-            TRIPLET: powerpc64le-linux-gnu
-            GCC: 12
-            HOST: powerpc64le-unknown-linux-gnu
-          - ARCH: riscv64
-            RUNNER: ubuntu-24.04
-            CROSS_ARCH: riscv64
-            TRIPLET: riscv64-linux-gnu
-            GCC: 14
-            HOST: riscv64-unknown-linux-gnu
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Install dependencies
-        run: |
-          DEBIAN_FRONTEND=noninteractive sudo apt-get -yq update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get -yq install m4 make autoconf automake libtool libltdl-dev texinfo \
-            gcc-${{matrix.GCC}}-${{matrix.TRIPLET}} \
-            libc6-dev-${{matrix.CROSS_ARCH}}-cross \
-            git
-      - name: Clone repository
-        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
-      - name: Configure build
-        run: |
-          PATH=$HOME/i/bin:$PATH ./autogen.sh
-          ./configure --disable-shared --with-pic CC=${{matrix.TRIPLET}}-gcc-${{matrix.GCC}} --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
-      - name: Build
-        run: make
-      - name: Package artifact
-        run: |
-          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
-
-          mkdir -p "$PKG/include"
-          mkdir -p "$PKG/lib"
-
-          cp LICENSE "$PKG/"
-          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
-          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
-          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+#  Linux:
+#    name: Linux
+#    runs-on: ubuntu-latest
+#    container:
+#      image: almalinux:8
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        ARCH: [x64]
+#        include:
+#          - ARCH: x64
+#            HOST: x86_64-pc-linux-gnu
+#    defaults:
+#      run:
+#        shell: bash
+#    steps:
+#      - name: Install git
+#        run: dnf -y install git
+#      - name: Clone repository
+#        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+#      - name: Install build dependencies
+#        run: |
+#          dnf -y install epel-release
+#          dnf config-manager --set-enabled powertools
+#          dnf -y update
+#          dnf -y install gcc-toolset-15-gcc
+#      - name: Install libffi dependencies
+#        run: dnf -y install autoconf automake autoconf libtool texinfo
+#      - name: Configure build
+#        run: |
+#          source /opt/rh/gcc-toolset-15/enable || true
+#          ./autogen.sh
+#          ./configure --disable-shared --with-pic --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
+#      - name: Build
+#        run: |
+#          source /opt/rh/gcc-toolset-15/enable || true
+#          make
+#      - name: Package artifact
+#        run: |
+#          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+#
+#          mkdir -p "$PKG/include"
+#          mkdir -p "$PKG/lib"
+#
+#          cp LICENSE "$PKG/"
+#          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
+#          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+#          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+#
+#  Linux-Cross:
+#    name: Linux Cross
+#    runs-on: ${{ matrix.RUNNER }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        ARCH: [ arm32, arm64, ppc64le, riscv64 ]
+#        include:
+#          - ARCH: arm32
+#            RUNNER: ubuntu-22.04
+#            CROSS_ARCH: armhf
+#            TRIPLET: arm-linux-gnueabihf
+#            GCC: 12
+#            HOST: arm-unknown-linux-gnueabihf
+#          - ARCH: arm64
+#            RUNNER: ubuntu-22.04
+#            CROSS_ARCH: arm64
+#            TRIPLET: aarch64-linux-gnu
+#            GCC: 12
+#            HOST: aarch64-unknown-linux-gnu
+#          - ARCH: ppc64le
+#            RUNNER: ubuntu-22.04
+#            CROSS_ARCH: ppc64el
+#            TRIPLET: powerpc64le-linux-gnu
+#            GCC: 12
+#            HOST: powerpc64le-unknown-linux-gnu
+#          - ARCH: riscv64
+#            RUNNER: ubuntu-24.04
+#            CROSS_ARCH: riscv64
+#            TRIPLET: riscv64-linux-gnu
+#            GCC: 14
+#            HOST: riscv64-unknown-linux-gnu
+#    defaults:
+#      run:
+#        shell: bash
+#    steps:
+#      - name: Install dependencies
+#        run: |
+#          DEBIAN_FRONTEND=noninteractive sudo apt-get -yq update
+#          DEBIAN_FRONTEND=noninteractive sudo apt-get -yq install m4 make autoconf automake libtool libltdl-dev texinfo \
+#            gcc-${{matrix.GCC}}-${{matrix.TRIPLET}} \
+#            libc6-dev-${{matrix.CROSS_ARCH}}-cross \
+#            git
+#      - name: Clone repository
+#        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+#      - name: Configure build
+#        run: |
+#          PATH=$HOME/i/bin:$PATH ./autogen.sh
+#          ./configure --disable-shared --with-pic CC=${{matrix.TRIPLET}}-gcc-${{matrix.GCC}} --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
+#      - name: Build
+#        run: make
+#      - name: Package artifact
+#        run: |
+#          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+#
+#          mkdir -p "$PKG/include"
+#          mkdir -p "$PKG/lib"
+#
+#          cp LICENSE "$PKG/"
+#          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
+#          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+#          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
 
   Freebsd-Cross:
     name: FreeBSD Cross
@@ -136,6 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        ARCH: [ x64 ]
         include:
           - ARCH: x64
             VM_ARCH: x86-64
@@ -171,6 +172,7 @@ jobs:
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
+          ls
           cp LICENSE "$PKG/"
           cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
           cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
