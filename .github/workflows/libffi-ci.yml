@@ -239,14 +239,14 @@ jobs:
         ARCH: [ x86, x64, arm64 ]
         include:
           # -----
-          - ARCH: x86
-            SOURCE_ARCH: x86
-            #VCTOOLS: x86.x64
-            MSVC_ARCH: amd64_x86
-            #MSVC_ARCH: x86
-            MSVC_SH: -m32
-            HOST: i686-pc-cygwin
-          # -----
+#          - ARCH: x86
+#            SOURCE_ARCH: x86
+#            #VCTOOLS: x86.x64
+#            MSVC_ARCH: amd64_x86
+#            #MSVC_ARCH: x86
+#            MSVC_SH: -m32
+#            HOST: i686-pc-cygwin
+#          # -----
           - ARCH: x64
             SOURCE_ARCH: x86
             #VCTOOLS: x86.x64
@@ -254,13 +254,13 @@ jobs:
             MSVC_SH: -m64
             HOST: x86_64-pc-cygwin
           # -----
-          - ARCH: arm64
-            SOURCE_ARCH: aarch64
-            #VCTOOLS: ARM64
-            MSVC_ARCH: amd64_arm64
-            #MSVC_ARCH: arm64
-            MSVC_SH: -marm64
-            HOST: aarch64-pc-cygwin
+#          - ARCH: arm64
+#            SOURCE_ARCH: aarch64
+#            #VCTOOLS: ARM64
+#            MSVC_ARCH: amd64_arm64
+#            #MSVC_ARCH: arm64
+#            MSVC_SH: -marm64
+#            HOST: aarch64-pc-cygwin
     defaults:
       run:
         shell: cmd
@@ -276,12 +276,11 @@ jobs:
           arch: ${{ matrix.MSVC_ARCH }}
       - name: Clone repository
         run: |
-          C:\cygwin\bin\bash.exe git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
-          C:\cygwin\bin\bash.exe ls
+          git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+          ls
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
-          cd $(cygpath $RUNNER_WORKSPACE)/libffi
           ./autogen.sh
           ./configure \
             CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
