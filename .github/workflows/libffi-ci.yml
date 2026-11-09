@@ -294,7 +294,7 @@ jobs:
           cd "$BUILD_DIR" || {
           echo "ERROR: No se pudo entrar en $BUILD_DIR"
           exit 1
-        }
+          }
 
           echo "Directorio actual despues del cd:"
           pwd
@@ -305,7 +305,7 @@ jobs:
           test -f ./autogen.sh || {
           echo "ERROR: autogen.sh no existe en $(pwd)"
           exit 1
-        }
+          }
 
           ./autogen.sh
       
@@ -315,7 +315,7 @@ jobs:
           test -f ./configure || {
           echo "ERROR: autogen.sh no genero configure"
           exit 1
-        }
+          }
 
           ./configure \
           CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{ matrix.MSVC_SH }}" \
@@ -331,7 +331,7 @@ jobs:
           || {
           find . -name config.log -print -exec cat {} \;
           exit 1
-        }
+          }
 
           cp src/${{ matrix.SOURCE_ARCH }}/ffitarget.h include
           make all
