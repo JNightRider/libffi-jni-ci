@@ -236,14 +236,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ARCH: [ x64 ]
+        ARCH: [ x86, x64, arm64 ]
         include:
+          # -----
+#          - ARCH: x86
+#            SOURCE_ARCH: x86
+#            #VCTOOLS: x86.x64
+#            MSVC_ARCH: amd64_x86
+#            #MSVC_ARCH: x86
+#            MSVC_SH: -m32
+#            HOST: i686-pc-cygwin
+          # -----
           - ARCH: x64
             SOURCE_ARCH: x86
             #VCTOOLS: x86.x64
             MSVC_ARCH: amd64
             MSVC_SH: -m64
             HOST: x86_64-pc-cygwin
+          # -----
+#          - ARCH: arm64
+#            SOURCE_ARCH: aarch64
+#            #VCTOOLS: ARM64
+#            MSVC_ARCH: amd64_arm64
+#            #MSVC_ARCH: arm64
+#            MSVC_SH: -marm64
+#            HOST: aarch64-pc-cygwin
     defaults:
       run:
         shell: cmd
@@ -264,107 +281,31 @@ jobs:
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
-          set -e
-      
-          echo "Directorio inicial:"
-          pwd
-      
-          BUILD_DIR="$(cygpath -u "$GITHUB_WORKSPACE")"
-      
-          echo "Directorio de libffi:"
-          echo "$BUILD_DIR"
-      
-          cd "$BUILD_DIR" || {
-          echo "ERROR: No se pudo entrar en $BUILD_DIR"
-          exit 1
-          }
-
-          echo "Directorio actual despues del cd:"
-          pwd
-      
-          echo "Contenido antes de autogen:"
-          ls -la
-      
-          test -f ./autogen.sh || {
-          echo "ERROR: autogen.sh no existe en $(pwd)"
-          exit 1
-          }
-
-          test -f ./autogen.sh || {
-            echo "ERROR: autogen.sh no existe en $(pwd)"
-            exit 1
-          }
-            
-          sed 's/\r$//' ./autogen.sh > ./autogen.sh.lf
-          echo "=== autogen.sh despues de normalizar ==="
-          cat -v ./autogen.sh.lf
-        
-          /bin/sh ./autogen.sh.lf
-      
-          echo "Contenido despues de autogen:"
-          ls -la
-      
-          test -f ./configure || {
-          echo "ERROR: autogen.sh no genero configure"
-          exit 1
-          }
-
+          
+          ./autogen.sh
           ./configure \
-          CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{ matrix.MSVC_SH }}" \
-          CXX="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{ matrix.MSVC_SH }}" \
-          LD='link' \
-          CPP='cl -nologo -EP' \
-          CXXCPP='cl -nologo -EP' \
-          CPPFLAGS='-DFFI_BUILDING_DLL -DUSE_STATIC_RTL' \
-          NM='dumpbin -symbols' \
-          STRIP=':' \
-          CONFIGURE_OPTIONS=--disable-shared \
-          --host=${{ matrix.HOST }} \
-          || {
-          find . -name config.log -print -exec cat {} \;
-          exit 1
-          }
-
-          cp src/${{ matrix.SOURCE_ARCH }}/ffitarget.h include
+            CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
+            CXX="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
+            LD='link' \
+            CPP='cl -nologo -EP' \
+            CXXCPP='cl -nologo -EP' \
+            CPPFLAGS='-DFFI_BUILDING_DLL -DUSE_STATIC_RTL' \
+            NM='dumpbin -symbols' \
+            STRIP=':' \
+            CONFIGURE_OPTIONS=--disable-shared \
+            --host=${{matrix.HOST}} \
+            || (cat */config.log ; exit 1)
+          cp src/${{matrix.SOURCE_ARCH}}/ffitarget.h include
           make all
           EOF
-      
-          echo "=== BUILD SCRIPT ==="
+          echo BUILD SCRIPT
+          echo ------------
           cat build.sh
           chmod +x build.sh
         shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: Debug Cygwin workspace
-        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-        run: |
-          echo "=== Directorio actual ==="
-          pwd
-
-          echo "=== Contenido del directorio actual ==="
-          ls -la
-
-          echo "=== Variables de GitHub Actions ==="
-          echo "RUNNER_WORKSPACE=$RUNNER_WORKSPACE"
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-
-          echo "=== Conversion a rutas Cygwin ==="
-          echo "RUNNER_WORKSPACE=$(cygpath "$RUNNER_WORKSPACE")"
-          echo "GITHUB_WORKSPACE=$(cygpath "$GITHUB_WORKSPACE")"
-
-          echo "=== Contenido de GITHUB_WORKSPACE ==="
-          ls -la "$(cygpath "$GITHUB_WORKSPACE")"
-
-          echo "=== Buscar archivos de libffi ==="
-          find "$(cygpath "$RUNNER_WORKSPACE")" \
-            -maxdepth 4 \
-            -type f \
-            \( -name "autogen.sh" -o -name "configure" -o -name "msvcc.sh" \) \
-            -print
       - name: Build
         #call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=${{matrix.MSVC_ARCH}}
-        #run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr ls build.sh
-        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-        run: |
-          ./build.sh
+        run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr ls build.sh
       - name: Package artifact
         run: |
           PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
