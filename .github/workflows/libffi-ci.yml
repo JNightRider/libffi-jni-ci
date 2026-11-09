@@ -222,7 +222,7 @@ jobs:
           mkdir -p "$PKG/lib"
 
           cp LICENSE "$PKG/"
-          cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}/include/*.h "$PKG/include/"
+          cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}}/include/*.h "$PKG/include/"
           cp ${{matrix.HOST}}-apple-darwin${{matrix.DARWIN}}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
