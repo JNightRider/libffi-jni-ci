@@ -107,7 +107,10 @@ jobs:
           DEBIAN_FRONTEND=noninteractive sudo apt-get -yq update
           DEBIAN_FRONTEND=noninteractive sudo apt-get -yq install m4 make autoconf automake libtool libltdl-dev texinfo \
             gcc-${{matrix.GCC}}-${{matrix.TRIPLET}} \
-            libc6-dev-${{matrix.CROSS_ARCH}}-cross
+            libc6-dev-${{matrix.CROSS_ARCH}}-cross \
+            git
+      - name: Clone repository
+        run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
       - name: Configure build
         run: |
           PATH=$HOME/i/bin:$PATH ./autogen.sh
