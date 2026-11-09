@@ -295,16 +295,11 @@ jobs:
             exit 1
           }
             
-          echo "=== autogen.sh antes de normalizar ==="
-          cat -v ./autogen.sh
-          
-          # Convertir CRLF de Windows a LF de Unix
-          sed -i 's/\r$//' ./autogen.sh
-          
+          sed 's/\r$//' ./autogen.sh > ./autogen.sh.lf
           echo "=== autogen.sh despues de normalizar ==="
-          cat -v ./autogen.sh
-          
-          ./autogen.sh
+          cat -v ./autogen.sh.lf
+        
+          /bin/sh ./autogen.sh.lf
       
           echo "Contenido despues de autogen:"
           ls -la
