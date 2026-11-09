@@ -4,11 +4,6 @@
 name: LibFFI-JNI CI
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'version'
-        required: true
-        type: string
 
 env:
   URL_LIBFFI: https://github.com/libffi/libffi/archive/refs/tags/v3.8.0.zip
