@@ -135,13 +135,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        include:
+          - ARCH: x64
+            VM_ARCH: x86-64
+            VERSION: '14.4'
     steps:
       - name: Start VM
         uses: cross-platform-actions/action@v1.3.0
         with:
           operating_system: freebsd
-          architecture: x86-64
-          version: '14.4'
+          architecture: ${{ matrix.VM_ARCH }}
+          version: ${{ matrix.VERSION }}
           memory: 4G
       - name: Install dependencies
         shell: cpa.sh {0}
