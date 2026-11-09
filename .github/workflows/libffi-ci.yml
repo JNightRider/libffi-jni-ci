@@ -141,6 +141,7 @@ jobs:
           - ARCH: x64
             VM_ARCH: x86-64
             VERSION: '14.4'
+            OUTPUT: x86_64-unknown-freebsd
     steps:
       - name: Start VM
         uses: cross-platform-actions/action@v1.3.0
@@ -167,17 +168,18 @@ jobs:
         run: make
       - name: Package artifact
         run: |
-          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+          PKG=libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
+          LIB_DIR=${{ matrix. OUTPUT }}${{ matrix.VERSION  }}
 
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
           ls
           cp LICENSE "$PKG/"
-          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
-          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+          cp $LIB_DIR/include/*.h "$PKG/include/"
+          cp $LIB_DIR/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
-          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+          name: libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-freebsd-${{ matrix.ARCH }}
