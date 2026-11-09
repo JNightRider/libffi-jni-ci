@@ -1,0 +1,49 @@
+---
+# GitHub Actions workflow for commits pushed to the LibFFI-JNI CI repo - all branches
+
+name: LibFFI-JNI CI
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'version'
+        required: true
+        type: string
+jobs:
+  Linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    container:
+      image: almalinux:8
+    strategy:
+      fail-fast: false
+      matrix:
+        ARCH: [x64]
+        include:
+          - ARCH: x64
+            HOST: x86_64-pc-linux-gnu
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install git
+        run: dnf -y install git
+      - name: Clone repository
+        run: git clone --depth 3 https://github.com/libffi/libffi.git .
+      - name: Install build dependencies
+        run: |
+          dnf -y install epel-release wget
+          dnf config-manager --set-enabled powertools
+          dnf -y update
+          dnf -y install gcc-toolset-15-gcc awscli
+      - name: Install libffi dependencies
+        run: dnf -y install autoconf automake autoconf libtool texinfo
+      - name: Configure build
+        run: |
+          source /opt/rh/gcc-toolset-15/enable || true
+          ./autogen.sh
+          ./configure --disable-shared --with-pic --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
+      - name: Build
+        run: |
+          source /opt/rh/gcc-toolset-15/enable || true
+          make
