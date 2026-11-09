@@ -281,7 +281,7 @@ jobs:
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
-          cd $(cygpath $RUNNER_WORKSPACE)/libffi
+          cd $(cygpath $RUNNER_WORKSPACE)
           ./autogen.sh
           ./configure \
             CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
