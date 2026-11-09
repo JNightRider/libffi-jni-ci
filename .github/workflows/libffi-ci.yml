@@ -129,3 +129,49 @@ jobs:
         with:
           name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
           path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+
+  Freebsd-Cross:
+    name: FreeBSD Cross
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - name: Start VM
+        uses: cross-platform-actions/action@v1.3.0
+        with:
+          operating_system: freebsd
+          architecture: x86-64
+          version: '14.4'
+          memory: 4G
+      - name: Install dependencies
+        shell: cpa.sh {0}
+        run: sudo pkg install -y m4 gmake automake libtool texinfo
+      - name: Configure build
+        shell: cpa.sh {0}
+        run: |
+          ./autogen.sh
+          ./configure --disable-shared --with-pic
+      - name: Print config failure
+        run: cat */config.log
+        if: failure()
+      - name: Build
+        shell: cpa.sh {0}
+        run: make
+      - name: Package artifact
+        run: |
+          PKG=libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+
+          mkdir -p "$PKG/include"
+          mkdir -p "$PKG/lib"
+
+          cp LICENSE "$PKG/"
+          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
+          cp ${{ matrix.HOST }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-linux-${{ matrix.ARCH }}
