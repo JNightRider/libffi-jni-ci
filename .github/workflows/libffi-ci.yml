@@ -174,7 +174,7 @@ jobs:
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
-          ls
+          ls x86_64-unknown-freebsd14.4
           cp LICENSE "$PKG/"
           cp $LIB_DIR/include/*.h "$PKG/include/"
           cp $LIB_DIR/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
