@@ -276,11 +276,12 @@ jobs:
           arch: ${{ matrix.MSVC_ARCH }}
       - name: Clone repository
         run: |
-          git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
-          ls
+          C:\cygwin\bin\bash.exe git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
+          C:\cygwin\bin\bash.exe ls
       - name: Prepare build script
         run: |
           cat > build.sh <<'EOF'
+          cd $(cygpath $RUNNER_WORKSPACE)/libffi
           ./autogen.sh
           ./configure \
             CC="$PWD/msvcc.sh -DUSE_STATIC_RTL ${{matrix.MSVC_SH}}" \
