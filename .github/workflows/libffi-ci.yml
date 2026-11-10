@@ -82,7 +82,6 @@ jobs:
       - name: Package artifact
         run: |
           ls ${{matrix.ARCH}}-unknown-linux-${{matrix.TYPE}}
-          
 
 #  Linux:
 #    name: Linux
