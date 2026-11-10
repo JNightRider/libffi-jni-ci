@@ -81,7 +81,7 @@ jobs:
         run: make
       - name: Package artifact
         run: |
-          ls ${{ matrix. }}-unknown-linux-${{ matrix.TYPE }}
+          ls ${{ matrix.ARCH }}-unknown-linux-${{ matrix.TYPE }}
           
 
 #  Linux:
