@@ -308,29 +308,10 @@ jobs:
         run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr build.sh
       - name: Package artifact
         run: |
-          cd $(cygpath $RUNNER_WORKSPACE)/libffi-jni-ci
-          PKG="libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}"
-
-          echo "=== source ls ==="
-          ls
-          echo "=== source matrix.host ==="
-          ls ${{ matrix.HOST }}
-          
-          echo "=== source aarch64-pc-cygwin ==="
-          ls ${{ matrix.HOST }}\.libs
-          
-          echo "include"
-          ls include
-          
-          mkdir -p "$PKG/include"
-          mkdir -p "$PKG/lib"
-
-          cp LICENSE "$PKG/"
-          cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
-          cp ${{ matrix.HOST }}/libffi_convenience.a "$PKG/lib/libffi.a"
-        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
-          path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+          ls ${{matrix.HOST}}
+          ls ${{matrix.HOST}}\.libs
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+#          path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
