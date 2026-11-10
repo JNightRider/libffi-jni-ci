@@ -14,42 +14,36 @@ jobs:
     name: Android
     runs-on: ubuntu-latest
 
+    env:
+      # windows=windows-x86_64, macOs=[darwin-arm64, arwin-x86_64], linux=linux-x86_64
+      MAKE_ANDROID_NDK_TOOLCHAIN: linux-x86_64
+      MAKE_ANDROID_API_LEVEL: 35
+
     strategy:
       fail-fast: false
       matrix:
         ARCH: [arm64-v8a, armeabi-v7a, riscv64, x86, x86_64]
         include:
           - ARCH: arm64-v8a
-            TYPE: android
+            OUTPUT: aarch64-unknown-linux-android
             HOST: aarch64-linux-android
             TRIPLET: aarch64-linux-android
-            # windows=windows-x86_64, macOs=[darwin-arm64, arwin-x86_64], linux=linux-x86_64
-            TOOLCHAIN: linux-x86_64
-            API_LEVEL: 35
           - ARCH: armeabi-v7a
-            TYPE: androideabi
+            OUTPUT: arm-unknown-linux-androideabi
             HOST: arm-linux-androideabi
             TRIPLET: armv7a-linux-androideabi
-            TOOLCHAIN: linux-x86_64
-            API_LEVEL: 35
           - ARCH: riscv64
-            TYPE: android
+            OUTPUT: riscv64-unknown-linux-android
             HOST: riscv64-linux-android
             TRIPLET: riscv64-linux-android
-            TOOLCHAIN: linux-x86_64
-            API_LEVEL: 35
           - ARCH: x86
-            TYPE: android
+            OUTPUT: i686-pc-linux-android
             HOST: i686-linux-android
             TRIPLET: i686-linux-android
-            TOOLCHAIN: linux-x86_64
-            API_LEVEL: 35
           - ARCH: x86_64
-            TYPE: android
+            OUTPUT: x86_64-pc-linux-android
             HOST: x86_64-linux-android
             TRIPLET: x86_64-linux-android
-            TOOLCHAIN: linux-x86_64
-            API_LEVEL: 35
     defaults:
       run:
         shell: bash
@@ -62,11 +56,11 @@ jobs:
         run: git clone --depth 3 --branch ${{ env.FFI_VERSION }} https://github.com/libffi/libffi.git .
       - name: Configure build
         run: |
-          export TOOLCHAIN="${ANDROID_NDK_ROOT}"/toolchains/llvm/prebuilt/${{ matrix.TOOLCHAIN }}
-          export CC="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang
-          export CXX="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang++
-          export CC_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang
-          export CXX_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang++
+          export TOOLCHAIN="${ANDROID_NDK_ROOT}"/toolchains/llvm/prebuilt/${MAKE_ANDROID_NDK_TOOLCHAIN}
+          export CC="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${MAKE_ANDROID_API_LEVEL}-clang
+          export CXX="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${MAKE_ANDROID_API_LEVEL}-clang++
+          export CC_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${MAKE_ANDROID_API_LEVEL}-clang
+          export CXX_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${MAKE_ANDROID_API_LEVEL}-clang++
           export LD="${TOOLCHAIN}"/bin/ld.lld
           export AR="${TOOLCHAIN}"/bin/llvm-ar
           export AS="${CC}"
@@ -81,7 +75,7 @@ jobs:
         run: make
       - name: Package artifact
         run: |
-          ls ${{matrix.ARCH}}-unknown-linux-${{matrix.TYPE}}
+          ls ${{matrix.OUTPUT}}
 
 #  Linux:
 #    name: Linux
