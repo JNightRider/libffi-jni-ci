@@ -7,7 +7,7 @@ on:
 
 env:
   FFI_VERSION: v3.8.0
-  VERSION: 0.1.0
+  VERSION: ${{ github.ref_name }}
 
 jobs:
   Android-Cross:
