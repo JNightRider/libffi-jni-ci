@@ -81,6 +81,8 @@ jobs:
           echo "NM=$NM"
           echo "OBJDUMP=$OBJDUMP"
 
+          ./autogen.sh
+          ./configure --disable-shared --with-pic --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
 
 #  Linux:
 #    name: Linux
