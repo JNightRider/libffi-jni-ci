@@ -69,22 +69,15 @@ jobs:
           export STRIP="${TOOLCHAIN}"/bin/llvm-strip
           export NM="${TOOLCHAIN}"/bin/llvm-nm
           export OBJDUMP="${TOOLCHAIN}"/bin/llvm-objdump
-          
-          echo "CC=$CC"
-          echo "CXX=$CXX"
-          echo "CC_FOR_TARGET=$CC_FOR_TARGET"
-          echo "CXX_FOR_TARGET=$CXX_FOR_TARGET"
-          echo "LD=$LD"
-          echo "AR=$AR"
-          echo "RANLIB=$RANLIB"
-          echo "STRIP=$STRIP"
-          echo "NM=$NM"
-          echo "OBJDUMP=$OBJDUMP"
 
           ./autogen.sh
           ./configure --disable-shared --with-pic --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
       - name: Build
         run: make
+      - name: Package artifact
+        run: |
+          ls
+          
 
 #  Linux:
 #    name: Linux
