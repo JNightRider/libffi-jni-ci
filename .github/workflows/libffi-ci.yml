@@ -337,7 +337,6 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: release-assets
-
       - name: Show artifacts
         run: |
-          ls -lah .
+          ls -lah release-assets/
