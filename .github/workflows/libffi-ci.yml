@@ -308,9 +308,10 @@ jobs:
       - name: Package artifact
         shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
         run: |
-          cd "$(cygpath -u "$GITHUB_WORKSPACE")"
           PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
 
+          ls
+          ls ${{ matrix.HOST }}
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
