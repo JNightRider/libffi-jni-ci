@@ -307,11 +307,20 @@ jobs:
         #call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=${{matrix.MSVC_ARCH}}
         run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr build.sh
       - name: Package artifact
+        shell: cmd
         run: |
-          ls ${{matrix.HOST}}
-          ls ${{matrix.HOST}}\.libs
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
-#          path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+          set "PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}"
+
+          mkdir "%PKG%\include"
+          mkdir "%PKG%\lib"
+
+          copy /Y LICENSE "%PKG%\"
+          copy /Y "${{ matrix.HOST }}\include\*.h" "%PKG%\include\"
+          copy /Y "${{ matrix.HOST }}\.libs\libffi_convenience.lib" "%PKG%\lib\libffi.lib"
+
+          dir /S "%PKG%"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
