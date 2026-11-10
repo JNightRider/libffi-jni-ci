@@ -75,8 +75,19 @@ jobs:
         run: make
       - name: Package artifact
         run: |
-          ls -a ${{matrix.OUTPUT}}
-          ls -a ${{matrix.OUTPUT}}/.libs
+          PKG=libffi-${{ env.VERSION }}-android-${{ matrix.ARCH }}
+
+          mkdir -p "$PKG/include"
+          mkdir -p "$PKG/lib"
+
+          cp LICENSE "$PKG/"
+          cp ${{ matrix.OUTPUT }}/include/*.h "$PKG/include/"
+          cp ${{ matrix.OUTPUT }}/.libs/libffi_convenience.a "$PKG/lib/libffi.a"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libffi-${{ env.VERSION }}-android-${{ matrix.ARCH }}
+          path: libffi-${{ env.VERSION }}-android-${{ matrix.ARCH }}
 
 #  Linux:
 #    name: Linux
