@@ -308,10 +308,19 @@ jobs:
       - name: Package artifact
         run: |
           cd $(cygpath $RUNNER_WORKSPACE)/libffi-jni-ci
-          PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+          PKG="libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}"
 
+          echo "source ls"
           ls
+          echo "source matrix.host"
           ls ${{ matrix.HOST }}
+          
+          echo "source aarch64-pc-cygwin"
+          ls aarch64-pc-cygwin
+          
+          echo "include"
+          ls include
+          
           mkdir -p "$PKG/include"
           mkdir -p "$PKG/lib"
 
