@@ -75,7 +75,8 @@ jobs:
         run: make
       - name: Package artifact
         run: |
-          ls ${{matrix.OUTPUT}}
+          ls -a ${{matrix.OUTPUT}}
+          ls -a ${{matrix.OUTPUT}}/.libs
 
 #  Linux:
 #    name: Linux
