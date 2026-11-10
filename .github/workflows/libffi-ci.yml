@@ -306,7 +306,6 @@ jobs:
         #call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\VsDevCmd.bat" -host_arch=amd64 -arch=${{matrix.MSVC_ARCH}}
         run: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr build.sh
       - name: Package artifact
-        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
         run: |
           cd $(cygpath $RUNNER_WORKSPACE)/libffi-jni-ci
           PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
@@ -319,6 +318,7 @@ jobs:
           cp LICENSE "$PKG/"
           cp ${{ matrix.HOST }}/include/*.h "$PKG/include/"
           cp ${{ matrix.HOST }}/libffi_convenience.a "$PKG/lib/libffi.a"
+        shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
