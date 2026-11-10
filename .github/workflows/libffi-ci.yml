@@ -83,6 +83,8 @@ jobs:
 
           ./autogen.sh
           ./configure --disable-shared --with-pic --host=${{matrix.HOST}} || (cat */config.log ; exit 1)
+      - name: Build
+        run: make
 
 #  Linux:
 #    name: Linux
