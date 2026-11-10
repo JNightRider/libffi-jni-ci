@@ -20,27 +20,32 @@ jobs:
         ARCH: [arm64-v8a, armeabi-v7a, riscv64, x86, x86_64]
         include:
           - ARCH: arm64-v8a
+            TYPE: android
             HOST: aarch64-linux-android
             TRIPLET: aarch64-linux-android
             # windows=windows-x86_64, macOs=[darwin-arm64, arwin-x86_64], linux=linux-x86_64
             TOOLCHAIN: linux-x86_64
             API_LEVEL: 35
           - ARCH: armeabi-v7a
+            TYPE: androideabi
             HOST: arm-linux-androideabi
             TRIPLET: armv7a-linux-androideabi
             TOOLCHAIN: linux-x86_64
             API_LEVEL: 35
           - ARCH: riscv64
+            TYPE: android
             HOST: riscv64-linux-android
             TRIPLET: riscv64-linux-android
             TOOLCHAIN: linux-x86_64
             API_LEVEL: 35
           - ARCH: x86
+            TYPE: android
             HOST: i686-linux-android
             TRIPLET: i686-linux-android
             TOOLCHAIN: linux-x86_64
             API_LEVEL: 35
           - ARCH: x86_64
+            TYPE: android
             HOST: x86_64-linux-android
             TRIPLET: x86_64-linux-android
             TOOLCHAIN: linux-x86_64
@@ -76,7 +81,7 @@ jobs:
         run: make
       - name: Package artifact
         run: |
-          ls
+          ls ${{ matrix. }}-unknown-linux-${{ matrix.TYPE }}
           
 
 #  Linux:
