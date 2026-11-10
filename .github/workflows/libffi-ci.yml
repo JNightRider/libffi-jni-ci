@@ -404,6 +404,7 @@ jobs:
           path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
 
   publish:
+    if: github.event_name == 'release'
     needs:
       - Android-Cross
       - Linux
@@ -440,6 +441,7 @@ jobs:
           echo "Generated archives:"
           ls -lah *.tar.gz
       - name: Upload assets to GitHub Release
+        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
