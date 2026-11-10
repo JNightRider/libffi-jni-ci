@@ -59,9 +59,9 @@ jobs:
         run: |
           export TOOLCHAIN="${ANDROID_NDK_ROOT}"/toolchains/llvm/prebuilt/${{ matrix.TOOLCHAIN }}
           export CC="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang
-          export CXX="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${matrix.API_LEVEL}-clang++
-          export CC_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${matrix.API_LEVEL}-clang
-          export CXX_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${matrix.API_LEVEL}-clang++
+          export CXX="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang++
+          export CC_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang
+          export CXX_FOR_TARGET="${TOOLCHAIN}"/bin/${{ matrix.TRIPLET }}${{ matrix.API_LEVEL }}-clang++
           export LD="${TOOLCHAIN}"/bin/ld.lld
           export AR="${TOOLCHAIN}"/bin/llvm-ar
           export AS="${CC}"
