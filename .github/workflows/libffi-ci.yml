@@ -308,6 +308,7 @@ jobs:
       - name: Package artifact
         shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
         run: |
+          cd $(cygpath $RUNNER_WORKSPACE)/libffi-jni-ci
           PKG=libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
 
           ls
