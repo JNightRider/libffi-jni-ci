@@ -410,11 +410,34 @@ jobs:
       - MacOs
       - Windows
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
           path: release-assets
-      - name: Show artifacts
+      - name: Show downloaded artifacts
         run: |
+          echo "Downloaded artifacts:"
           ls -lah release-assets/
+      - name: Compress artifacts
+        run: |
+          cd release-assets
+
+          for DIR in */; do
+            NAME="${DIR%/}"
+            echo "Compressing ${NAME}..."
+            tar -czf "${NAME}.tar.gz" "$NAME"
+          done
+          
+          echo "Generated archives:"
+          ls -lah *.tar.gz
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event.release.tag_name || github.ref_name }}"
+          echo "Uploading assets to release: ${TAG}"
+          gh release upload "$TAG" release-assets/*.tar.gz --clobber          
+          echo "Release assets uploaded successfully."
