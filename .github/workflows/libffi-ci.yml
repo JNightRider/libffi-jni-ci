@@ -230,7 +230,7 @@ jobs:
           name: libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
           path: libffi-${{ env.VERSION }}-macOS-${{ matrix.ARCH }}
 
-  windows:
+  Windows:
     name: Windows
     runs-on: windows-2022
     strategy:
@@ -323,3 +323,21 @@ jobs:
         with:
           name: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
           path: libffi-${{ env.VERSION }}-windows-${{ matrix.ARCH }}
+
+  publish:
+    needs:
+      - Linux
+      - Linux-Cross
+      - Freebsd-Cross
+      - MacOs
+      - Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: release-assets
+
+      - name: Show artifacts
+        run: |
+          ls -lah .
