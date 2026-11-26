@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  FFI_VERSION: v3.8.0
+  FFI_VERSION: v3.8.2
   VERSION: ${{ github.ref_name }}
 
 jobs:
